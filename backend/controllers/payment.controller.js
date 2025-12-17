@@ -87,11 +87,15 @@ export const createOrderHandle = async (req, res) => {
             customer_id,
             setup_future_usage: "ON_SESSION"
         });
+         
 
+        console.log("response ----->", response)
+        const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}`;
         return res.status(200).json({
             order_id: response.data.id,
             status: response.data.status,
-            data: response.data
+            data: response.data,
+            url
         });
 
     } catch (error) {
@@ -148,8 +152,6 @@ export const getCustomerHandle = async (req, res) => {
 export const getCustomerPaymentsHandle = async (req, res) => {
     try {
         const id = req.params.id
-
-
         const response = await revolutClient.get(`/api/1.0/customers/${id}/payment-methods`);
 
         return res.status(200).json({
