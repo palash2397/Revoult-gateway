@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Revolut Payment</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      text-align: center;
+    }
+    .container {
+      margin-top: 50px;
+    }
+    input[type="text"] {
+      padding: 10px;
+      width: 80%;
+      margin: 10px 0;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    button {
+      background-color: #0070ba;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      margin: 10px 5px;
+    }
+    button:hover {
+      background-color: #005ea6;
+    }
+    button:disabled {
+      background-color: #cccccc;
+      cursor: not-allowed;
+    }
+    #paymentContainer {
+      margin-top: 20px;
+      display: none;
+    }
+    #loading {
+      display: none;
+      margin: 20px 0;
+      color: #666;
+    }
+    .error {
+      color: #d32f2f;
+      margin: 10px 0;
+    }
+  </style>
+  <!-- Sandbox Environment -->
+  <script src="https://sandbox-merchant.revolut.com/embed.js"></script>
+  <!-- Production Environment (uncomment when ready) -->
+  <!-- <script src="https://merchant.revolut.com/embed.js"></script> -->
+  
+  <script>
+    // DOM Elements
+    const initContainer = document.getElementById('initContainer');
+    const paymentContainer = document.getElementById('paymentContainer');
+    const publicIdInput = document.getElementById('publicId');
+    const initBtn = document.getElementById('initBtn');
+    const payBtn = document.getElementById('payBtn');
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error');
+    const paymentErrorEl = document.getElementById('paymentError');
+    
+    // Global variable to store the Revolut Checkout instance
+    let revolutCheckout = null;
+
+    // Handle init button click
+    initBtn.addEventListener('click', async () => {
+      const publicId = publicIdInput.value.trim();
+      if (!publicId) {
+        showError('Please enter a valid public ID');
+        return;
+      }
+      
+      try {
+        loadingEl.style.display = 'block';
+        errorEl.textContent = '';
+        
+        // Initialize Revolut Checkout
+        revolutCheckout = await RevolutCheckout(publicId, 'sandbox');
+        
+        // Show payment container and hide init container
+        initContainer.style.display = 'none';
+        paymentContainer.style.display = 'block';
+        payBtn.disabled = false;
+      } catch (error) {
+        console.error('Initialization error:', error);
+        showError('Failed to initialize payment: ' + (error.message || 'Unknown error'));
+      } finally {
+        loadingEl.style.display = 'none';
+      }
+    });
+
+    // Handle pay button click
+    payBtn.addEventListener('click', async () => {
+      if (!revolutCheckout) {
+        showError('Payment system not initialized. Please try again.');
+        return;
+      }
+      
+      try {
+        payBtn.disabled = true;
+        paymentErrorEl.textContent = '';
+        loadingEl.style.display = 'block';
+        
+        // Launch the payment popup
+        await revolutCheckout.payWithPopup({
+          name: 'Your Store',
+          currency: 'EUR',
+          total: {
+            amount: 1000, // 10.00 EUR (in minor units)
+            currency: 'EUR'
+          },
+          onSuccess: function() {
+            alert('Payment successful!');
+            console.log('Payment successful');
+            // You can redirect or update UI here
+          },
+          onError: function(error) {
+            console.error('Payment error:', error);
+            paymentErrorEl.textContent = 'Payment failed: ' + (error.message || 'Unknown error');
+          },
+          onCancel: function() {
+            console.log('Payment cancelled by user');
+            paymentErrorEl.textContent = 'Payment was cancelled';
+          }
+        });
+      } catch (error) {
+        console.error('Payment error:', error);
+        paymentErrorEl.textContent = 'Payment error: ' + (error.message || 'Unknown error');
+      } finally {
+        payBtn.disabled = false;
+        loadingEl.style.display = 'none';
+      }
+    });
+
+    // Helper function to show errors
+    function showError(message) {
+      errorEl.textContent = message;
+      console.error(message);
+    }
+  </script>
+</head>
+
+<body>
+  <div class="container">
+    <h1>Revolut Payment</h1>
+    
+    <div id="initContainer">
+      <p>Enter your public ID to proceed with the payment</p>
+      <input type="text" id="publicId" placeholder="Enter your public ID" />
+      <button id="initBtn">Proceed to Payment</button>
+      <p><small>Test public ID: test_public_id (for sandbox testing)</small></p>
+      <div id="error" class="error"></div>
+    </div>
+
+    <div id="paymentContainer">
+      <h2>Pay with Card</h2>
+      <div id="loading">Loading payment form...</div>
+      <button id="payBtn" disabled>Pay Now</button>
+      <div id="paymentError" class="error"></div>
+    </div>
+  </div>
+  
+  <script>
+    // Check for public_id in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const publicIdFromUrl = urlParams.get('public_id');
+    
+    if (publicIdFromUrl) {
+      publicIdInput.value = publicIdFromUrl;
+      // Auto-click the init button after a short delay
+      setTimeout(() => initBtn.click(), 100);
+    }
+  </script>
+
+  <script>
+    document.getElementById('initBtn').addEventListener('click', async function() {
+      const publicId = document.getElementById('publicId').value.trim();
+      
+      if (!publicId) {
+        alert('Please enter a valid public ID');
+        return;
+      }
+
+      // Store the public ID in session storage
+      sessionStorage.setItem('revolutPublicId', publicId);
+      
+      // Hide init container and show payment container
+      document.getElementById('initContainer').style.display = 'none';
+      document.getElementById('paymentContainer').style.display = 'block';
+    });
+
+    // Debug: Log when the script loads
+    console.log('Payment script loaded');
+    
+    // Add click handler for init button
+    document.getElementById('initBtn').addEventListener('click', function() {
+      const publicId = document.getElementById('publicId').value.trim();
+      console.log('Init button clicked with publicId:', publicId);
+      
+      if (publicId) {
+        sessionStorage.setItem('revolutPublicId', publicId);
+        document.getElementById('initContainer').style.display = 'none';
+        document.getElementById('paymentContainer').style.display = 'block';
+      } else {
+        alert('Please enter a valid public ID');
+      }
+    });
+    
+    // Add click handler for pay button
+    document.getElementById('payBtn').addEventListener('click', async function() {
+      console.log('Pay button clicked');
+      
+      const publicId = sessionStorage.getItem('revolutPublicId');
+      console.log('Retrieved publicId from sessionStorage:', publicId);
+      
+      if (!publicId) {
+        const errorMsg = 'Please enter a valid public ID';
+        console.error(errorMsg);
+        alert(errorMsg);
+        return;
+      }
+
+      try {
+        console.log('Initializing payment with public ID:', publicId);
+        
+        // Wait for the Revolut SDK to load
+        const RevolutCheckout = await waitForRevolut();
+        
+        console.log('Initializing Revolut Checkout...');
+        
+        // Initialize the checkout
+        const checkout = await RevolutCheckout({
+          publicToken: publicId,
+          mode: 'sandbox'
+        });
+
+        console.log('Revolut Checkout initialized, showing payment UI...');
+
+        // Show the payment UI
+        checkout.payments({
+          onSuccess() {
+            console.log('Payment successful!');
+            alert('✅ Payment successful!');
+          },
+          
+          onError(error) {
+            console.error('Payment error:', error);
+            alert('❌ Payment failed: ' + (error.message || 'Unknown error'));
+          },
+          
+          onCancel() {
+            console.log('Payment cancelled by user');
+          },
+          
+          // Additional recommended options
+          savePaymentMethodFor: 'customer',
+          locale: 'en-GB'
+        });
+      } catch (error) {
+        console.error('Error:', error);
+        alert('❌ Error: ' + (error.message || 'Failed to initialize payment'));
+      }
+    });
+
+    // Check for public_id in URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    const publicIdFromUrl = urlParams.get('public_id');
+    
+    if (publicIdFromUrl) {
+      document.getElementById('publicId').value = publicIdFromUrl;
+      document.getElementById('initBtn').click();
+    }
+  </script>
+</body>
+</html>
