@@ -13,14 +13,13 @@ if (!orderPublicId) {
 
 // Initialize Revolut Checkout with the order public ID
 const checkout = await RevolutCheckout(
-  orderPublicId, // The order public ID from URL
-  'sandbox' // or 'prod' for production
+  orderPublicId, 
+  'prod' 
 );
 
 // Pay using ORDER PUBLIC ID
 document.getElementById("payBtn").onclick = async () => {
   try {
-    // Ensure orderPublicId is a string
     const orderId = String(orderPublicId).trim();
     
     // Log the order ID being used for debugging
