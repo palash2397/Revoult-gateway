@@ -211,7 +211,83 @@ export const createOrderAuthHandle = async (req, res) => {
 
 
 
+export const capturePaymentHandle = async (req, res) => {
+    try {
+        const { orderId, amount, reason } = req.body;
 
+
+        if (!orderId) {
+            return res.status(400).json({
+                success: false,
+                message: "Order ID is required"
+            });
+        }
+
+        if (!amount || amount <= 0) {
+            return res.status(400).json({
+                success: false,
+                message: "Valid amount is required"
+            });
+        }
+
+        const response = await revolutClient.post(
+            `/api/orders/${orderId}/capture`,
+            { amount }
+        );
+
+        const message = reason === "user_cancelled"
+            ? "Cancellation fee captured, remaining amount released to customer"
+            : "Full ride payment captured successfully";
+
+        return res.status(200).json({
+            success: true,
+            message,
+            state: response.data.state,   // will be "completed"
+            captured_amount: amount,
+            data: response.data
+        });
+
+    } catch (error) {
+        return res.status(error.response?.status || 500).json({
+            success: false,
+            message: "Failed to capture payment",
+            error: error.response?.data || error.message
+        });
+    }
+};
+
+
+export const releasePaymentHandle = async (req, res) => {
+    try {
+        const orderId = req.params.id;
+
+        if (!orderId) {
+            return res.status(400).json({
+                success: false,
+                message: "Order ID is required"
+            });
+        }
+
+
+        const response = await revolutClient.post(
+            `/api/1.0/orders/${orderId}/cancel`
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Payment hold released, full amount returned to customer",
+            state: response.data.state,   // will be "cancelled"
+            data: response.data
+        });
+
+    } catch (error) {
+        return res.status(error.response?.status || 500).json({
+            success: false,
+            message: "Failed to release payment",
+            error: error.response?.data || error.message
+        });
+    }
+};
 
 
 
