@@ -1,45 +1,41 @@
-import { ApiResponse } from '../utils/ApiResponse.js';
-import { revolutClient } from '../config/revolut.config.js';
+import { ApiResponse } from "../utils/ApiResponse.js";
+import { revolutClient } from "../config/revolut.config.js";
 
 export const createCustomerHandle = async (req, res) => {
     try {
-        const {
-            full_name,
-            business_name,
-            email,
-            phone,
-            date_of_birth
-        } = req.body;
+        const { full_name, business_name, email, phone, date_of_birth } = req.body;
 
-        const response = await revolutClient.post('/api/1.0/customers', {
+        const response = await revolutClient.post("/api/1.0/customers", {
             full_name,
             business_name,
             email,
             phone,
-            date_of_birth
+            date_of_birth,
         });
 
-        return res.status(200).json(new ApiResponse(200, {
-            customer_id: response.data.id,
-            data: response.data
-        }, `customer created successfully`))
-
-
-
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                {
+                    customer_id: response.data.id,
+                    data: response.data,
+                },
+                `customer created successfully`,
+            ),
+        );
     } catch (error) {
         res.status(400).json({
-            error: error.response?.data || error.message
+            error: error.response?.data || error.message,
         });
     }
-}
-
+};
 
 export const payOrderHandle = async (req, res) => {
     try {
         const { order_id, payment_method_id } = req.body;
 
         const response = await revolutClient.post(
-            `/api/orders/${order_id}/payments`,   // ✅ NO 1.0 here
+            `/api/orders/${order_id}/payments`, // ✅ NO 1.0 here
             {
                 saved_payment_method: {
                     type: "card",
@@ -53,209 +49,177 @@ export const payOrderHandle = async (req, res) => {
                         screen_width: 1920,
                         screen_height: 1080,
                         java_enabled: false,
-                        challenge_window_width: 640
-                    }
-                }
-            }
+                        challenge_window_width: 640,
+                    },
+                },
+            },
         );
 
         return res.status(200).json({
             success: true,
-            data: response.data
+            data: response.data,
         });
-
     } catch (error) {
-        console.log(`error while paying order`, error)
+        console.log(`error while paying order`, error);
         return res.status(400).json({
-            error: error.response?.data || error.message
+            error: error.response?.data || error.message,
         });
     }
 };
 
-
 export const createOrderHandle = async (req, res) => {
     try {
-        const {
-            amount,
-            currency,
-            customer_id
-        } = req.body;
+        const { amount, currency, customer_id } = req.body;
 
-        const response = await revolutClient.post('/api/1.0/orders', {
+        const response = await revolutClient.post("/api/1.0/orders", {
             amount,
             currency,
             customer_id,
-            setup_future_usage: "ON_SESSION"
+            setup_future_usage: "ON_SESSION",
         });
 
-
-        console.log("response ----->", response)
+        console.log("response ----->", response);
         const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}`;
         return res.status(200).json({
             order_id: response.data.id,
             status: response.data.status,
             data: response.data,
-            url
+            url,
         });
-
     } catch (error) {
-        console.log(`error while creating order`, error)
+        console.log(`error while creating order`, error);
         res.status(400).json({
-            error: error.response?.data || error.message
+            error: error.response?.data || error.message,
         });
     }
-
-}
-
-
-
-
-
+};
 
 export const getOrderHandle = async (req, res) => {
     try {
-        const id = req.params.id
-
+        const id = req.params.id;
 
         const response = await revolutClient.get(`/api/1.0/orders/${id}`);
 
         return res.status(200).json({
             success: true,
-            data: response.data
+            data: response.data,
         });
-
-
     } catch (error) {
-
-        console.log(`error getting the order`, error)
-        return res.status(501).json(new ApiResponse(500, {}, `Internal server error`))
-
+        console.log(`error getting the order`, error);
+        return res
+            .status(501)
+            .json(new ApiResponse(500, {}, `Internal server error`));
     }
-}
-
+};
 
 export const getCustomerHandle = async (req, res) => {
     try {
-        const id = req.params.id
+        const id = req.params.id;
         const response = await revolutClient.get(`/api/1.0/customers/${id}`);
 
         return res.status(200).json({
             success: true,
-            data: response.data
+            data: response.data,
         });
-
     } catch (error) {
-
-        console.log(`error getting the order`, error)
-        return res.status(501).json(new ApiResponse(500, {}, `Internal server error`))
-
+        console.log(`error getting the order`, error);
+        return res
+            .status(501)
+            .json(new ApiResponse(500, {}, `Internal server error`));
     }
-}
-
+};
 
 export const getCustomerPaymentsHandle = async (req, res) => {
     try {
-        const id = req.params.id
-        const response = await revolutClient.get(`/api/1.0/customers/${id}/payment-methods`);
+        const id = req.params.id;
+        const response = await revolutClient.get(
+            `/api/1.0/customers/${id}/payment-methods`,
+        );
 
         return res.status(200).json({
             success: true,
-            data: response.data
+            data: response.data,
         });
-
     } catch (error) {
-
-        console.log(`error getting the order`, error)
-        return res.status(501).json(new ApiResponse(500, {}, `Internal server error`))
-
+        console.log(`error getting the order`, error);
+        return res
+            .status(501)
+            .json(new ApiResponse(500, {}, `Internal server error`));
     }
-}
-
-
+};
 
 export const createOrderAuthHandle = async (req, res) => {
     try {
-        const {
-            amount,
-            currency,
-            customer_id
-        } = req.body;
+        const { amount, currency, customer_id } = req.body;
 
-        const response = await revolutClient.post('/api/1.0/orders', {
+        const response = await revolutClient.post("/api/1.0/orders", {
             amount,
             currency,
             customer_id,
             capture_mode: "MANUAL",
             authorisation_type: "pre_authorisation",
-            setup_future_usage: "ON_SESSION"
+            setup_future_usage: "ON_SESSION",
         });
 
-
-        console.log("response ----->", response)
+        console.log("response ----->", response);
         const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}`;
         return res.status(200).json({
             order_id: response.data.id,
             status: response.data.status,
             data: response.data,
-            url
+            url,
         });
-
     } catch (error) {
-        console.log(`error while creating order`, error)
+        console.log(`error while creating order`, error);
         res.status(400).json({
-            error: error.response?.data || error.message
+            error: error.response?.data || error.message,
         });
     }
-
-}
-
-
+};
 
 export const capturePaymentHandle = async (req, res) => {
     try {
         const { orderId, amount, reason } = req.body;
 
-
         if (!orderId) {
             return res.status(400).json({
                 success: false,
-                message: "Order ID is required"
+                message: "Order ID is required",
             });
         }
 
         if (!amount || amount <= 0) {
             return res.status(400).json({
                 success: false,
-                message: "Valid amount is required"
+                message: "Valid amount is required",
             });
         }
 
         const response = await revolutClient.post(
             `/api/orders/${orderId}/capture`,
-            { amount }
+            { amount },
         );
 
-        const message = reason === "user_cancelled"
-            ? "Cancellation fee captured, remaining amount released to customer"
-            : "Full ride payment captured successfully";
+        const message =
+            reason === "user_cancelled"
+                ? "Cancellation fee captured, remaining amount released to customer"
+                : "Full ride payment captured successfully";
 
         return res.status(200).json({
             success: true,
             message,
-            state: response.data.state,   // will be "completed"
+            state: response.data.state, // will be "completed"
             captured_amount: amount,
-            data: response.data
+            data: response.data,
         });
-
     } catch (error) {
         return res.status(error.response?.status || 500).json({
             success: false,
             message: "Failed to capture payment",
-            error: error.response?.data || error.message
+            error: error.response?.data || error.message,
         });
     }
 };
-
 
 export const releasePaymentHandle = async (req, res) => {
     try {
@@ -264,32 +228,28 @@ export const releasePaymentHandle = async (req, res) => {
         if (!orderId) {
             return res.status(400).json({
                 success: false,
-                message: "Order ID is required"
+                message: "Order ID is required",
             });
         }
 
-
         const response = await revolutClient.post(
-            `/api/1.0/orders/${orderId}/cancel`
+            `/api/1.0/orders/${orderId}/cancel`,
         );
 
         return res.status(200).json({
             success: true,
             message: "Payment hold released, full amount returned to customer",
-            state: response.data.state,   // will be "cancelled"
-            data: response.data
+            state: response.data.state, // will be "cancelled"
+            data: response.data,
         });
-
     } catch (error) {
         return res.status(error.response?.status || 500).json({
             success: false,
             message: "Failed to release payment",
-            error: error.response?.data || error.message
+            error: error.response?.data || error.message,
         });
     }
 };
-
-
 
 // const customerData = {
 //   full_name: "Example Customer",
@@ -316,9 +276,6 @@ export const releasePaymentHandle = async (req, res) => {
 // } catch (error) {
 //   console.error("Revolut error:", error.response?.data || error.message);
 // }
-
-
-
 
 // let data = JSON.stringify({
 //     "amount": 500,

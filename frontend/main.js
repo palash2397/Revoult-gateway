@@ -2,7 +2,7 @@ import RevolutCheckout from "@revolut/checkout";
 
 const params = new URLSearchParams(window.location.search);
 
-// 🔥 READ ORDER PUBLIC ID ONLY
+
 const orderPublicId = params.get("order_public_id");
 
 console.log("ORDER PUBLIC ID:", orderPublicId);
