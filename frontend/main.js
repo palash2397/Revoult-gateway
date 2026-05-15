@@ -13,25 +13,25 @@ if (!orderPublicId) {
 
 // Initialize Revolut Checkout with the order public ID
 const checkout = await RevolutCheckout(
-  orderPublicId, 
-  'prod' 
+  orderPublicId,
+  'sandbox'
 );
+
+// 'prod' or 'sandbox'
 
 // Pay using ORDER PUBLIC ID
 document.getElementById("payBtn").onclick = async () => {
   try {
     const orderId = String(orderPublicId).trim();
-    
-    // Log the order ID being used for debugging
+
     console.log('Attempting payment with order ID:', orderId);
-    
-    // Pay with popup - no need to pass orderId again as it's already set in the checkout instance
+
+
     await checkout.payWithPopup({
       savePaymentMethodFor: "customer",
       onSuccess() {
         console.log('Payment successful');
         alert("Payment successful");
-        // Optional: Redirect or update UI on success
       },
       onError(error) {
         console.error('Payment error details:', {
