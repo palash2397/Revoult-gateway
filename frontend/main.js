@@ -1,55 +1,3 @@
-// import RevolutCheckout from "@revolut/checkout";
-
-// const params = new URLSearchParams(window.location.search);
-
-
-// const orderPublicId = params.get("order_public_id");
-
-// console.log("ORDER PUBLIC ID:", orderPublicId);
-
-// if (!orderPublicId) {
-//   throw new Error("Missing order_public_id");
-// }
-
-// // Initialize Revolut Checkout with the order public ID
-// const checkout = await RevolutCheckout(
-//   orderPublicId,
-//   'sandbox'
-// );
-
-// 'prod' or 'sandbox'
-
-// Pay using ORDER PUBLIC ID
-// document.getElementById("payBtn").onclick = async () => {
-//   try {
-//     const orderId = String(orderPublicId).trim();
-
-//     console.log('Attempting payment with order ID:', orderId);
-
-
-//     await checkout.payWithPopup({
-//       savePaymentMethodFor: "customer",
-//       onSuccess() {
-//         console.log('Payment successful');
-//         // alert("Payment successful");
-//       },
-//       onError(error) {
-//         console.error('Payment error details:', {
-//           error,
-//           orderId,
-//           timestamp: new Date().toISOString()
-//         });
-//         alert(`Payment failed: ${error?.message || 'Unknown error'}`);
-//       }
-//     });
-//   } catch (error) {
-//     console.error('Error in payment handler:', error);
-//     alert(`An error occurred: ${error.message}`);
-//   }
-// };
-
-
-
 import RevolutCheckout from "@revolut/checkout";
 
 const params = new URLSearchParams(window.location.search);
@@ -57,95 +5,146 @@ const orderPublicId = params.get("order_public_id");
 const amount = parseInt(params.get("amount")) || 2000;
 
 console.log("ORDER PUBLIC ID:", orderPublicId);
+console.log("AMOUNT:", amount);
 
 if (!orderPublicId) {
   throw new Error("Missing order_public_id");
 }
 
-// ─── Card payment ─────────────────────────────────────────────
-const checkout = await RevolutCheckout(orderPublicId, "sandbox");
+const REVOLUT_PUBLIC_KEY = "pk_0blvy58RYFGhKvdhcH9JAXpMPBhYacieb2AhoYzIOcRz53Zr"; // your production public key
+const MODE = "sandbox"; // "sandbox" or "prod"
+const SUCCESS_URL = `/revoult/ride-confirmed?order_public_id=${orderPublicId}`;
+
+
+// ─── Poll order status ────────────────────────────────────────────────────
+const waitForPaymentComplete = async (maxAttempts = 10) => {
+  for (let i = 0; i < maxAttempts; i++) {
+    await new Promise(r => setTimeout(r, 1500));
+    const res = await fetch(`/api/ride/order-status/${orderPublicId}`);
+    const data = await res.json();
+    console.log(`Poll ${i + 1}: state = ${data.state}`);
+    if (data.state === "COMPLETED" || data.state === "AUTHORISED") return true;
+    if (data.state === "CANCELLED" || data.state === "FAILED") return false;
+  }
+  return false;
+};
+
+const handleAfterWalletPay = async () => {
+  const success = await waitForPaymentComplete();
+  if (success) {
+    window.location.href = SUCCESS_URL;
+  }
+};
+
+
+// ─── 1. Card Payment ──────────────────────────────────────────────────────
+const checkout = await RevolutCheckout(orderPublicId, MODE);
 
 document.getElementById("payBtn").onclick = async () => {
   try {
     await checkout.payWithPopup({
       savePaymentMethodFor: "customer",
       onSuccess() {
-        console.log("Card payment successful");
-        window.location.href = `/revoult/ride-confirmed?order_public_id=${orderPublicId}`;
+        window.location.href = SUCCESS_URL;
       },
       onError(error) {
-        console.error("Payment error:", error);
         alert(`Payment failed: ${error?.message || "Unknown error"}`);
       },
     });
   } catch (error) {
-    console.error("Error in payment handler:", error);
     alert(`An error occurred: ${error.message}`);
   }
 };
 
 
-// ─── Google Pay ───────────────────────────────────────────────────────────
+// ─── 2. Google Pay ────────────────────────────────────────────────────────
 const setupGooglePay = async () => {
   try {
-    const googlePayTarget = document.getElementById("google-pay-btn");
-
-    if (!googlePayTarget) {
-      console.warn("google-pay-btn element not found — skipping Google Pay");
-      return;
-    }
+    const target = document.getElementById("google-pay-btn");
+    if (!target) return;
 
     const { paymentRequest } = await RevolutCheckout.payments({
-      publicToken: "pk_0blvy58RYFGhKvdhcH9JAXpMPBhYacieb2AhoYzIOcRz53Zr", // pk_... from dashboard
-      mode: "sandbox",
+      publicToken: REVOLUT_PUBLIC_KEY,
+      mode: MODE,
     });
 
-    const instance = paymentRequest(googlePayTarget, {
+    const instance = paymentRequest(target, {
       currency: "EUR",
       amount,
-
-      createOrder: async () => {
-        return { publicId: orderPublicId };
-      },
-
+      preferredPaymentMethod: "googlePay", // ✅ force Google Pay only
+      createOrder: async () => ({ publicId: orderPublicId }),
       onSuccess() {
-        window.location.href = `/revoult/ride-confirmed?order_public_id=${orderPublicId}`;
+        window.location.href = SUCCESS_URL;
       },
-
       onError(error) {
         console.error("Google Pay error:", error.message);
         alert(`Google Pay failed: ${error.message}`);
       },
-
       onCancel() {
-        console.log("User cancelled Google Pay");
+        handleAfterWalletPay();
       },
     });
 
     const method = await instance.canMakePayment();
-
-    if (method) {
+    if (method === "googlePay") {
       instance.render();
-      document.getElementById("google-pay-btn").style.display = "block";
+      target.style.display = "block";
       console.log("Google Pay rendered");
     } else {
       instance.destroy();
-      document.getElementById("google-pay-btn").style.display = "none";
-      console.log("Google Pay not available, showing card payment only");
+      console.log("Google Pay not available");
     }
 
   } catch (error) {
     console.error("Google Pay setup error:", error);
-    document.getElementById("payBtn").style.display = "block";
   }
 };
 
+
+// ─── 3. Apple Pay ─────────────────────────────────────────────────────────
+const setupApplePay = async () => {
+  try {
+    const target = document.getElementById("apple-pay-btn");
+    if (!target) return;
+
+    const { paymentRequest } = await RevolutCheckout.payments({
+      publicToken: REVOLUT_PUBLIC_KEY,
+      mode: MODE,
+    });
+
+    const instance = paymentRequest(target, {
+      currency: "EUR",
+      amount,
+      preferredPaymentMethod: "applePay", // ✅ force Apple Pay only
+      createOrder: async () => ({ publicId: orderPublicId }),
+      onSuccess() {
+        window.location.href = SUCCESS_URL;
+      },
+      onError(error) {
+        console.error("Apple Pay error:", error.message);
+        alert(`Apple Pay failed: ${error.message}`);
+      },
+      onCancel() {
+        handleAfterWalletPay();
+      },
+    });
+
+    const method = await instance.canMakePayment();
+    if (method === "applePay") {
+      instance.render();
+      target.style.display = "block";
+      console.log("Apple Pay rendered");
+    } else {
+      instance.destroy();
+      console.log("Apple Pay not available on this device/browser");
+    }
+
+  } catch (error) {
+    console.error("Apple Pay setup error:", error);
+  }
+};
+
+
+// ─── Init all ─────────────────────────────────────────────────────────────
 setupGooglePay();
-
-
-
-
-
-
-
-
+setupApplePay();
