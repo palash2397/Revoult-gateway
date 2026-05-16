@@ -78,8 +78,9 @@ export const createOrderHandle = async (req, res) => {
             setup_future_usage: "ON_SESSION",
         });
 
-        console.log("response ----->", response);
-        const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}`;
+        // console.log("response ----->", response);
+        //const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}`;
+        const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}&amount=${amount}`;
         return res.status(200).json({
             order_id: response.data.id,
             status: response.data.status,
