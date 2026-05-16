@@ -253,6 +253,12 @@ export const releasePaymentHandle = async (req, res) => {
     }
 };
 
+
+// Apple Pay domain registered: {
+//   status: 200,
+//   applePayRegistrationId: '10155b73-2cbe-4501-b573-1a1c8da8f58a'
+// }
+
 // const customerData = {
 //   full_name: "Example Customer",
 //   email: "example.customer@example.com",
