@@ -54,6 +54,7 @@ import RevolutCheckout from "@revolut/checkout";
 
 const params = new URLSearchParams(window.location.search);
 const orderPublicId = params.get("order_public_id");
+const amount = parseInt(params.get("amount")) || 2000;
 
 console.log("ORDER PUBLIC ID:", orderPublicId);
 
@@ -61,7 +62,7 @@ if (!orderPublicId) {
   throw new Error("Missing order_public_id");
 }
 
-// ─── Card payment (unchanged) ─────────────────────────────────────────────
+// ─── Card payment ─────────────────────────────────────────────
 const checkout = await RevolutCheckout(orderPublicId, "sandbox");
 
 document.getElementById("payBtn").onclick = async () => {
@@ -101,15 +102,13 @@ const setupGooglePay = async () => {
 
     const instance = paymentRequest(googlePayTarget, {
       currency: "EUR",
-      amount: 2000, // €20.00 — replace with dynamic value if needed
+      amount,
 
       createOrder: async () => {
-        return { publicId: orderPublicId }; // reuse existing order
+        return { publicId: orderPublicId };
       },
 
       onSuccess() {
-        console.log("Google Pay successful");
-        // ✅ Fixed: correct base path + correct param name
         window.location.href = `/revoult/ride-confirmed?order_public_id=${orderPublicId}`;
       },
 
@@ -128,7 +127,6 @@ const setupGooglePay = async () => {
     if (method) {
       instance.render();
       document.getElementById("google-pay-btn").style.display = "block";
-      // ✅ Don't hide payBtn — show both buttons
       console.log("Google Pay rendered");
     } else {
       instance.destroy();
@@ -138,7 +136,6 @@ const setupGooglePay = async () => {
 
   } catch (error) {
     console.error("Google Pay setup error:", error);
-    // Silently fall back to card button
     document.getElementById("payBtn").style.display = "block";
   }
 };
