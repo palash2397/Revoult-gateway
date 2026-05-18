@@ -45,9 +45,3 @@ process.on('unhandledRejection', (err) => {
   });
 });
 
-// Handle uncaught exceptions
-process.on('uncaughtException', (err) => {
-  console.error('UNCAUGHT EXCEPTION! 💥 Shutting down...');
-  console.error(err);
-  process.exit(1);
-});
