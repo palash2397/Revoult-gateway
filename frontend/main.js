@@ -66,6 +66,7 @@ const setupGooglePay = async () => {
     const { paymentRequest } = await RevolutCheckout.payments({
       publicToken: REVOLUT_PUBLIC_KEY,
       mode: MODE,
+      locale: "pt",
     });
 
     const instance = paymentRequest(target, {
@@ -110,6 +111,7 @@ const setupApplePay = async () => {
     const { paymentRequest } = await RevolutCheckout.payments({
       publicToken: REVOLUT_PUBLIC_KEY,
       mode: MODE,
+      locale: "pt",
     });
 
     const instance = paymentRequest(target, {
