@@ -82,7 +82,7 @@ export const payOrderHandle = async (req, res) => {
                     environment: {
                         type: "browser",
                         browser_url: "https://api.tapsi.pt",
-                        time_zone_utc_offset: 60,      // ✅ Portugal is UTC+1, not 330 (India)
+                        time_zone_utc_offset: 60,
                         color_depth: 24,
                         screen_width: 1920,
                         screen_height: 1080,
@@ -95,22 +95,24 @@ export const payOrderHandle = async (req, res) => {
 
         const payment = response.data;
 
-        // ✅ Check if 3DS is required
-        const requiresAction = payment.payments?.find(
-            p => p.state === "PENDING" && p.redirect_url
-        );
+        console.log("Full payment response:", JSON.stringify(payment, null, 2));
 
-        if (requiresAction) {
-            // Send redirect URL to frontend so user can complete 3DS
+        // ✅ Check redirect_url in all possible locations
+        const redirectUrl =
+            payment.redirect_url ||                                          // top level
+            payment.action?.redirect_url ||                                  // action object
+            payment.payments?.find(p => p.redirect_url)?.redirect_url ||    // payments array
+            payment.checkout_url;                                            // checkout fallback
+
+        if (payment.state === "PENDING" && redirectUrl) {
             return res.status(200).json({
                 success: true,
                 requires_action: true,
-                redirect_url: requiresAction.redirect_url, // ← frontend redirects user here
+                redirect_url: redirectUrl,
                 data: payment
             });
         }
 
-        // No 3DS needed → already authorised
         return res.status(200).json({
             success: true,
             requires_action: false,
