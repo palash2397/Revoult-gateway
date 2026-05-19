@@ -72,7 +72,8 @@ export const payOrderHandle = async (req, res) => {
     try {
         const { order_id, payment_method_id } = req.body;
 
-        const response = await revolutClient.post(
+        // Step 1: Initiate payment with saved card
+        const paymentResponse = await revolutClient.post(
             `/api/orders/${order_id}/payments`,
             {
                 saved_payment_method: {
@@ -93,25 +94,25 @@ export const payOrderHandle = async (req, res) => {
             }
         );
 
-        const payment = response.data;
-        console.log("Full payment response:", JSON.stringify(payment, null, 2));
+        const payment = paymentResponse.data;
+        const paymentId = payment.id;
 
-        // ✅ If state is pending, fetch the order to get checkout_url for 3DS
-        if (payment.state === "pending") {
-            const orderResponse = await revolutClient.get(
-                `/api/1.0/orders/${order_id}`
-            );
+        console.log("Initial payment state:", payment.state);
 
-            const checkoutUrl = orderResponse.data.checkout_url;
+        // Step 2: Poll payment status until we get authentication_challenge or authorised
+        const acsUrl = await pollForAcsUrl(order_id, paymentId);
 
+        if (acsUrl) {
+            // 3DS required — send acs_url to frontend
             return res.status(200).json({
                 success: true,
                 requires_action: true,
-                redirect_url: checkoutUrl, // ← frontend redirects here for 3DS
+                redirect_url: acsUrl,  // ✅ this is the REAL 3DS url, not checkout_url
                 data: payment
             });
         }
 
+        // No 3DS needed — already authorised
         return res.status(200).json({
             success: true,
             requires_action: false,
@@ -124,6 +125,46 @@ export const payOrderHandle = async (req, res) => {
             error: error.response?.data || error.message,
         });
     }
+};
+
+const pollForAcsUrl = async (orderId, paymentId, maxAttempts = 10) => {
+    for (let i = 0; i < maxAttempts; i++) {
+        await new Promise(r => setTimeout(r, 1000)); // wait 1 second
+
+        const response = await revolutClient.get(
+            `/api/payments/${paymentId}`
+        );
+
+        const payment = response.data;
+        console.log(`Poll ${i + 1}: state = ${payment.state}`);
+
+        // ✅ 3DS challenge needed — return the acs_url
+        if (payment.state === "authentication_challenge") {
+            return payment.authentication_challenge?.acs_url;
+        }
+
+        // ✅ No 3DS needed — already passed
+        if (
+            payment.state === "authorised" ||
+            payment.state === "authorisation_passed" ||
+            payment.state === "authentication_verified"
+        ) {
+            return null; // no redirect needed
+        }
+
+        // ❌ Payment failed
+        if (
+            payment.state === "declined" ||
+            payment.state === "failed" ||
+            payment.state === "cancelled"
+        ) {
+            throw new Error(`Payment ${payment.state}: ${payment.decline_reason || ""}`);
+        }
+
+        // Still processing — keep polling
+    }
+
+    return null;
 };
 
 export const createOrderHandle = async (req, res) => {
