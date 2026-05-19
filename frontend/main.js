@@ -11,8 +11,8 @@ if (!orderPublicId) {
   throw new Error("Missing order_public_id");
 }
 
-const REVOLUT_PUBLIC_KEY = "pk_0blvy58RYFGhKvdhcH9JAXpMPBhYacieb2AhoYzIOcRz53Zr"; // your production public key
-const MODE = "sandbox"; // "sandbox" or "prod"
+const REVOLUT_PUBLIC_KEY = "pk_w7enNtJtvg9Vm6QGWb3DXbUuiwQ5innUaRzbjZG6Y24PXDyH"; // your production public key
+const MODE = "prod"; // "sandbox" or "prod"
 const SUCCESS_URL = `/revoult/ride-confirmed?order_public_id=${orderPublicId}`;
 
 

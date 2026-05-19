@@ -107,12 +107,9 @@ export const payOrderHandle = async (req, res) => {
             return res.status(200).json({
                 success: true,
                 requires_action: true,
-                redirect_url: acsUrl,  // ✅ this is the REAL 3DS url, not checkout_url
-                data: payment
+                redirect_url: acsUrl,
             });
         }
-
-        // No 3DS needed — already authorised
         return res.status(200).json({
             success: true,
             requires_action: false,
@@ -138,7 +135,6 @@ const pollForAcsUrl = async (orderId, paymentId, maxAttempts = 10) => {
         const payment = response.data;
         console.log(`Poll ${i + 1}: state = ${payment.state}`);
 
-        // ✅ 3DS challenge needed — return the acs_url
         if (payment.state === "authentication_challenge") {
             return payment.authentication_challenge?.acs_url;
         }
@@ -152,7 +148,6 @@ const pollForAcsUrl = async (orderId, paymentId, maxAttempts = 10) => {
             return null; // no redirect needed
         }
 
-        // ❌ Payment failed
         if (
             payment.state === "declined" ||
             payment.state === "failed" ||
@@ -161,7 +156,6 @@ const pollForAcsUrl = async (orderId, paymentId, maxAttempts = 10) => {
             throw new Error(`Payment ${payment.state}: ${payment.decline_reason || ""}`);
         }
 
-        // Still processing — keep polling
     }
 
     return null;
