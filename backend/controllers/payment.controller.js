@@ -94,21 +94,20 @@ export const payOrderHandle = async (req, res) => {
         );
 
         const payment = response.data;
-
         console.log("Full payment response:", JSON.stringify(payment, null, 2));
 
-        // ✅ Check redirect_url in all possible locations
-        const redirectUrl =
-            payment.redirect_url ||                                          // top level
-            payment.action?.redirect_url ||                                  // action object
-            payment.payments?.find(p => p.redirect_url)?.redirect_url ||    // payments array
-            payment.checkout_url;                                            // checkout fallback
+        // ✅ If state is pending, fetch the order to get checkout_url for 3DS
+        if (payment.state === "pending") {
+            const orderResponse = await revolutClient.get(
+                `/api/1.0/orders/${order_id}`
+            );
 
-        if (payment.state === "PENDING" && redirectUrl) {
+            const checkoutUrl = orderResponse.data.checkout_url;
+
             return res.status(200).json({
                 success: true,
                 requires_action: true,
-                redirect_url: redirectUrl,
+                redirect_url: checkoutUrl, // ← frontend redirects here for 3DS
                 data: payment
             });
         }
