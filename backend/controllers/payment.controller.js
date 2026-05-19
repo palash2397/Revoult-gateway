@@ -30,12 +30,50 @@ export const createCustomerHandle = async (req, res) => {
     }
 };
 
+// export const payOrderHandle = async (req, res) => {
+//     try {
+//         const { order_id, payment_method_id } = req.body;
+
+//         const response = await revolutClient.post(
+//             `/api/orders/${order_id}/payments`, // ✅ NO 1.0 here
+//             {
+//                 saved_payment_method: {
+//                     type: "card",
+//                     id: payment_method_id,
+//                     initiator: "merchant"
+//                     // environment: {
+//                     //     type: "browser",
+//                     //     browser_url: "https://yourapp.com",
+//                     //     time_zone_utc_offset: 330,
+//                     //     color_depth: 24,
+//                     //     screen_width: 1920,
+//                     //     screen_height: 1080,
+//                     //     java_enabled: false,
+//                     //     challenge_window_width: 640,
+//                     // },
+//                 },
+//             },
+//         );
+
+//         return res.status(200).json({
+//             success: true,
+//             data: response.data,
+//         });
+//     } catch (error) {
+//         console.log(`error while paying order`, error);
+//         return res.status(400).json({
+//             error: error.response?.data || error.message,
+//         });
+//     }
+// };
+
+
 export const payOrderHandle = async (req, res) => {
     try {
         const { order_id, payment_method_id } = req.body;
 
         const response = await revolutClient.post(
-            `/api/orders/${order_id}/payments`, // ✅ NO 1.0 here
+            `/api/orders/${order_id}/payments`,
             {
                 saved_payment_method: {
                     type: "card",
@@ -43,8 +81,8 @@ export const payOrderHandle = async (req, res) => {
                     initiator: "customer",
                     environment: {
                         type: "browser",
-                        browser_url: "https://yourapp.com",
-                        time_zone_utc_offset: 330,
+                        browser_url: "https://api.tapsi.pt",
+                        time_zone_utc_offset: 60,      // ✅ Portugal is UTC+1, not 330 (India)
                         color_depth: 24,
                         screen_width: 1920,
                         screen_height: 1080,
@@ -52,15 +90,35 @@ export const payOrderHandle = async (req, res) => {
                         challenge_window_width: 640,
                     },
                 },
-            },
+            }
         );
 
+        const payment = response.data;
+
+        // ✅ Check if 3DS is required
+        const requiresAction = payment.payments?.find(
+            p => p.state === "PENDING" && p.redirect_url
+        );
+
+        if (requiresAction) {
+            // Send redirect URL to frontend so user can complete 3DS
+            return res.status(200).json({
+                success: true,
+                requires_action: true,
+                redirect_url: requiresAction.redirect_url, // ← frontend redirects user here
+                data: payment
+            });
+        }
+
+        // No 3DS needed → already authorised
         return res.status(200).json({
             success: true,
-            data: response.data,
+            requires_action: false,
+            data: payment
         });
+
     } catch (error) {
-        console.log(`error while paying order`, error);
+        console.log("error while paying order", error);
         return res.status(400).json({
             error: error.response?.data || error.message,
         });
@@ -150,6 +208,7 @@ export const getCustomerPaymentsHandle = async (req, res) => {
 };
 
 export const createOrderAuthHandle = async (req, res) => {
+
     try {
         const { amount, currency, customer_id } = req.body;
 
