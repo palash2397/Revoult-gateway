@@ -206,13 +206,13 @@ const setupWalletButtons = async () => {
       const appleMethod = await appleInstance.canMakePayment();
       console.log("Apple Pay canMakePayment:", appleMethod);
 
-   if (appleMethod === "applePay") {
-    appleInstance.render();
-    appleTarget.style.display = "block";
-} else {
-    appleInstance.destroy();
-    appleTarget.style.display = "none";
-}
+      if (appleMethod === "applePay") {
+        appleInstance.render();
+        appleTarget.style.display = "block";
+      } else {
+        appleInstance.destroy();
+        appleTarget.style.display = "none";
+      }
     }
   } catch (error) {
     console.error("Wallet setup error:", error);
