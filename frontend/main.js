@@ -161,7 +161,6 @@ const debug = (msg) => {
 
 const setupWalletButtons = async () => {
   try {
-    // ✅ Single initialisation — faster
     const { paymentRequest } = await RevolutCheckout.payments({
       publicToken: REVOLUT_PUBLIC_KEY,
       mode: MODE,
