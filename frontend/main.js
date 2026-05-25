@@ -11,15 +11,15 @@ if (!orderPublicId) {
   throw new Error("Missing order_public_id");
 }
 
-const REVOLUT_PUBLIC_KEY = "pk_w7enNtJtvg9Vm6QGWb3DXbUuiwQ5innUaRzbjZG6Y24PXDyH"; // your production public key
+const REVOLUT_PUBLIC_KEY =
+  "pk_w7enNtJtvg9Vm6QGWb3DXbUuiwQ5innUaRzbjZG6Y24PXDyH"; // your production public key
 const MODE = "prod"; // "sandbox" or "prod"
 const SUCCESS_URL = `/revoult/ride-confirmed?order_public_id=${orderPublicId}`;
-
 
 // ─── Poll order status ────────────────────────────────────────────────────
 const waitForPaymentComplete = async (maxAttempts = 10) => {
   for (let i = 0; i < maxAttempts; i++) {
-    await new Promise(r => setTimeout(r, 1500));
+    await new Promise((r) => setTimeout(r, 1500));
     const res = await fetch(`/api/ride/order-status/${orderPublicId}`);
     const data = await res.json();
     console.log(`Poll ${i + 1}: state = ${data.state}`);
@@ -35,7 +35,6 @@ const handleAfterWalletPay = async () => {
     window.location.href = SUCCESS_URL;
   }
 };
-
 
 // ─── 1. Card Payment ──────────────────────────────────────────────────────
 const checkout = await RevolutCheckout(orderPublicId, MODE);
@@ -55,7 +54,6 @@ document.getElementById("payBtn").onclick = async () => {
     alert(`An error occurred: ${error.message}`);
   }
 };
-
 
 // // ─── 2. Google Pay ────────────────────────────────────────────────────────
 // const setupGooglePay = async () => {
@@ -101,7 +99,6 @@ document.getElementById("payBtn").onclick = async () => {
 //   }
 // };
 
-
 // // ─── 3. Apple Pay ─────────────────────────────────────────────────────────
 // const setupApplePay = async () => {
 //   try {
@@ -146,74 +143,80 @@ document.getElementById("payBtn").onclick = async () => {
 //   }
 // };
 
-
 // // ─── Init all ─────────────────────────────────────────────────────────────
 // setupGooglePay();
 // setupApplePay();
 
-
-
-
 const setupWalletButtons = async () => {
-    try {
-        // ✅ Single initialisation — faster
-        const { paymentRequest } = await RevolutCheckout.payments({
-            publicToken: REVOLUT_PUBLIC_KEY,
-            mode: MODE,
-        });
+  try {
+    // ✅ Single initialisation — faster
+    const { paymentRequest } = await RevolutCheckout.payments({
+      publicToken: REVOLUT_PUBLIC_KEY,
+      mode: MODE,
+    });
 
-        // ── Google Pay ──────────────────────────────────────────────────
-        const googleTarget = document.getElementById("google-pay-btn");
-        if (googleTarget) {
-            const googleInstance = paymentRequest(googleTarget, {
-                currency: "EUR",
-                amount,
-                // ✅ No preferredPaymentMethod — SDK auto-detects
-                createOrder: async () => ({ publicId: orderPublicId }),
-                onSuccess() { window.location.href = SUCCESS_URL; },
-                onError(error) { alert(`Google Pay failed: ${error.message}`); },
-                onCancel() { handleAfterWalletPay(); },
-            });
+    // ── Google Pay ──────────────────────────────────────────────────
+    const googleTarget = document.getElementById("google-pay-btn");
+    if (googleTarget) {
+      const googleInstance = paymentRequest(googleTarget, {
+        currency: "EUR",
+        amount,
+        createOrder: async () => ({ publicId: orderPublicId }),
+        onSuccess() {
+          window.location.href = SUCCESS_URL;
+        },
+        onError(error) {
+          alert(`Google Pay failed: ${error.message}`);
+        },
+        onCancel() {
+          handleAfterWalletPay();
+        },
+      });
 
-            const googleMethod = await googleInstance.canMakePayment();
-            console.log("Google Pay canMakePayment:", googleMethod);
+      const googleMethod = await googleInstance.canMakePayment();
+      console.log("Google Pay canMakePayment:", googleMethod);
 
-            if (googleMethod) {
-                googleInstance.render();
-                googleTarget.style.display = "block";
-            } else {
-                googleInstance.destroy();
-            }
-        }
-
-        // ── Apple Pay ───────────────────────────────────────────────────
-        const appleTarget = document.getElementById("apple-pay-btn");
-        if (appleTarget) {
-            const appleInstance = paymentRequest(appleTarget, {
-                currency: "EUR",
-                amount,
-                // ✅ No preferredPaymentMethod — SDK auto-detects
-                createOrder: async () => ({ publicId: orderPublicId }),
-                onSuccess() { window.location.href = SUCCESS_URL; },
-                onError(error) { alert(`Apple Pay failed: ${error.message}`); },
-                onCancel() { handleAfterWalletPay(); },
-            });
-
-            const appleMethod = await appleInstance.canMakePayment();
-            console.log("Apple Pay canMakePayment:", appleMethod);
-
-            if (appleMethod) {
-                appleInstance.render();
-                appleTarget.style.display = "block";
-            } else {
-                appleInstance.destroy();
-                console.log("Apple Pay not available — no card in wallet or not Safari");
-            }
-        }
-
-    } catch (error) {
-        console.error("Wallet setup error:", error);
+      if (googleMethod === "googlePay") {
+        googleInstance.render();
+        googleTarget.style.display = "block";
+      } else {
+        googleInstance.destroy();
+        googleTarget.style.display = "none";
+      }
     }
+
+    // ── Apple Pay ───────────────────────────────────────────────────
+    const appleTarget = document.getElementById("apple-pay-btn");
+    if (appleTarget) {
+      const appleInstance = paymentRequest(appleTarget, {
+        currency: "EUR",
+        amount,
+        createOrder: async () => ({ publicId: orderPublicId }),
+        onSuccess() {
+          window.location.href = SUCCESS_URL;
+        },
+        onError(error) {
+          alert(`Apple Pay failed: ${error.message}`);
+        },
+        onCancel() {
+          handleAfterWalletPay();
+        },
+      });
+
+      const appleMethod = await appleInstance.canMakePayment();
+      console.log("Apple Pay canMakePayment:", appleMethod);
+
+   if (appleMethod === "applePay") {
+    appleInstance.render();
+    appleTarget.style.display = "block";
+} else {
+    appleInstance.destroy();
+    appleTarget.style.display = "none";
+}
+    }
+  } catch (error) {
+    console.error("Wallet setup error:", error);
+  }
 };
 
 setupWalletButtons();
