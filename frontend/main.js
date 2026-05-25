@@ -147,6 +147,18 @@ document.getElementById("payBtn").onclick = async () => {
 // setupGooglePay();
 // setupApplePay();
 
+const debug = (msg) => {
+  let el = document.getElementById("debug-log");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "debug-log";
+    el.style =
+      "position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.85);color:#00ff00;font-size:13px;padding:10px;z-index:99999;max-height:250px;overflow:auto;word-break:break-all;";
+    document.body.appendChild(el);
+  }
+  el.innerHTML += `<div>> ${msg}</div>`;
+};
+
 const setupWalletButtons = async () => {
   try {
     // ✅ Single initialisation — faster
@@ -183,6 +195,8 @@ const setupWalletButtons = async () => {
         googleInstance.destroy();
         googleTarget.style.display = "none";
       }
+    } else {
+      debug("google-pay-btn element NOT FOUND in HTML");
     }
 
     // ── Apple Pay ───────────────────────────────────────────────────
@@ -213,6 +227,8 @@ const setupWalletButtons = async () => {
         appleInstance.destroy();
         appleTarget.style.display = "none";
       }
+    } else {
+      debug("google-pay-btn element NOT FOUND in HTML");
     }
   } catch (error) {
     console.error("Wallet setup error:", error);
