@@ -14,7 +14,7 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(express.static("public"));
 
 // Health check route
-app.get('/', (req, res) => {
+app.get('/api/health', (req, res) => {
   res.json(new ApiResponse(200, { status: 'ok' }, 'Revoult API is running'));
 });
 
