@@ -57,96 +57,163 @@ document.getElementById("payBtn").onclick = async () => {
 };
 
 
-// ─── 2. Google Pay ────────────────────────────────────────────────────────
-const setupGooglePay = async () => {
-  try {
-    const target = document.getElementById("google-pay-btn");
-    if (!target) return;
+// // ─── 2. Google Pay ────────────────────────────────────────────────────────
+// const setupGooglePay = async () => {
+//   try {
+//     const target = document.getElementById("google-pay-btn");
+//     if (!target) return;
 
-    const { paymentRequest } = await RevolutCheckout.payments({
-      publicToken: REVOLUT_PUBLIC_KEY,
-      mode: MODE,
-      locale: "pt",
-    });
+//     const { paymentRequest } = await RevolutCheckout.payments({
+//       publicToken: REVOLUT_PUBLIC_KEY,
+//       mode: MODE,
+//       locale: "pt",
+//     });
 
-    const instance = paymentRequest(target, {
-      currency: "EUR",
-      amount,
-      preferredPaymentMethod: "googlePay", // ✅ force Google Pay only
-      createOrder: async () => ({ publicId: orderPublicId }),
-      onSuccess() {
-        window.location.href = SUCCESS_URL;
-      },
-      onError(error) {
-        console.error("Google Pay error:", error.message);
-        alert(`Google Pay failed: ${error.message}`);
-      },
-      onCancel() {
-        handleAfterWalletPay();
-      },
-    });
+//     const instance = paymentRequest(target, {
+//       currency: "EUR",
+//       amount,
+//       preferredPaymentMethod: "googlePay", // ✅ force Google Pay only
+//       createOrder: async () => ({ publicId: orderPublicId }),
+//       onSuccess() {
+//         window.location.href = SUCCESS_URL;
+//       },
+//       onError(error) {
+//         console.error("Google Pay error:", error.message);
+//         alert(`Google Pay failed: ${error.message}`);
+//       },
+//       onCancel() {
+//         handleAfterWalletPay();
+//       },
+//     });
 
-    const method = await instance.canMakePayment();
-    if (method === "googlePay") {
-      instance.render();
-      target.style.display = "block";
-      console.log("Google Pay rendered");
-    } else {
-      instance.destroy();
-      console.log("Google Pay not available");
+//     const method = await instance.canMakePayment();
+//     if (method === "googlePay") {
+//       instance.render();
+//       target.style.display = "block";
+//       console.log("Google Pay rendered");
+//     } else {
+//       instance.destroy();
+//       console.log("Google Pay not available");
+//     }
+
+//   } catch (error) {
+//     console.error("Google Pay setup error:", error);
+//   }
+// };
+
+
+// // ─── 3. Apple Pay ─────────────────────────────────────────────────────────
+// const setupApplePay = async () => {
+//   try {
+//     const target = document.getElementById("apple-pay-btn");
+//     if (!target) return;
+
+//     const { paymentRequest } = await RevolutCheckout.payments({
+//       publicToken: REVOLUT_PUBLIC_KEY,
+//       mode: MODE,
+//       locale: "pt",
+//     });
+
+//     const instance = paymentRequest(target, {
+//       currency: "EUR",
+//       amount,
+//       preferredPaymentMethod: "applePay", // ✅ force Apple Pay only
+//       createOrder: async () => ({ publicId: orderPublicId }),
+//       onSuccess() {
+//         window.location.href = SUCCESS_URL;
+//       },
+//       onError(error) {
+//         console.error("Apple Pay error:", error.message);
+//         alert(`Apple Pay failed: ${error.message}`);
+//       },
+//       onCancel() {
+//         handleAfterWalletPay();
+//       },
+//     });
+
+//     const method = await instance.canMakePayment();
+//     if (method === "applePay") {
+//       instance.render();
+//       target.style.display = "block";
+//       console.log("Apple Pay rendered");
+//     } else {
+//       instance.destroy();
+//       console.log("Apple Pay not available on this device/browser");
+//     }
+
+//   } catch (error) {
+//     console.error("Apple Pay setup error:", error);
+//   }
+// };
+
+
+// // ─── Init all ─────────────────────────────────────────────────────────────
+// setupGooglePay();
+// setupApplePay();
+
+
+
+
+const setupWalletButtons = async () => {
+    try {
+        // ✅ Single initialisation — faster
+        const { paymentRequest } = await RevolutCheckout.payments({
+            publicToken: REVOLUT_PUBLIC_KEY,
+            mode: MODE,
+        });
+
+        // ── Google Pay ──────────────────────────────────────────────────
+        const googleTarget = document.getElementById("google-pay-btn");
+        if (googleTarget) {
+            const googleInstance = paymentRequest(googleTarget, {
+                currency: "EUR",
+                amount,
+                // ✅ No preferredPaymentMethod — SDK auto-detects
+                createOrder: async () => ({ publicId: orderPublicId }),
+                onSuccess() { window.location.href = SUCCESS_URL; },
+                onError(error) { alert(`Google Pay failed: ${error.message}`); },
+                onCancel() { handleAfterWalletPay(); },
+            });
+
+            const googleMethod = await googleInstance.canMakePayment();
+            console.log("Google Pay canMakePayment:", googleMethod);
+
+            if (googleMethod) {
+                googleInstance.render();
+                googleTarget.style.display = "block";
+            } else {
+                googleInstance.destroy();
+            }
+        }
+
+        // ── Apple Pay ───────────────────────────────────────────────────
+        const appleTarget = document.getElementById("apple-pay-btn");
+        if (appleTarget) {
+            const appleInstance = paymentRequest(appleTarget, {
+                currency: "EUR",
+                amount,
+                // ✅ No preferredPaymentMethod — SDK auto-detects
+                createOrder: async () => ({ publicId: orderPublicId }),
+                onSuccess() { window.location.href = SUCCESS_URL; },
+                onError(error) { alert(`Apple Pay failed: ${error.message}`); },
+                onCancel() { handleAfterWalletPay(); },
+            });
+
+            const appleMethod = await appleInstance.canMakePayment();
+            console.log("Apple Pay canMakePayment:", appleMethod);
+
+            if (appleMethod) {
+                appleInstance.render();
+                appleTarget.style.display = "block";
+            } else {
+                appleInstance.destroy();
+                console.log("Apple Pay not available — no card in wallet or not Safari");
+            }
+        }
+
+    } catch (error) {
+        console.error("Wallet setup error:", error);
     }
-
-  } catch (error) {
-    console.error("Google Pay setup error:", error);
-  }
 };
 
-
-// ─── 3. Apple Pay ─────────────────────────────────────────────────────────
-const setupApplePay = async () => {
-  try {
-    const target = document.getElementById("apple-pay-btn");
-    if (!target) return;
-
-    const { paymentRequest } = await RevolutCheckout.payments({
-      publicToken: REVOLUT_PUBLIC_KEY,
-      mode: MODE,
-      locale: "pt",
-    });
-
-    const instance = paymentRequest(target, {
-      currency: "EUR",
-      amount,
-      preferredPaymentMethod: "applePay", // ✅ force Apple Pay only
-      createOrder: async () => ({ publicId: orderPublicId }),
-      onSuccess() {
-        window.location.href = SUCCESS_URL;
-      },
-      onError(error) {
-        console.error("Apple Pay error:", error.message);
-        alert(`Apple Pay failed: ${error.message}`);
-      },
-      onCancel() {
-        handleAfterWalletPay();
-      },
-    });
-
-    const method = await instance.canMakePayment();
-    if (method === "applePay") {
-      instance.render();
-      target.style.display = "block";
-      console.log("Apple Pay rendered");
-    } else {
-      instance.destroy();
-      console.log("Apple Pay not available on this device/browser");
-    }
-
-  } catch (error) {
-    console.error("Apple Pay setup error:", error);
-  }
-};
-
-
-// ─── Init all ─────────────────────────────────────────────────────────────
-setupGooglePay();
-setupApplePay();
+setupWalletButtons();
