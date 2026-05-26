@@ -354,53 +354,10 @@ export const releasePaymentHandle = async (req, res) => {
 //   applePayRegistrationId: '10155b73-2cbe-4501-b573-1a1c8da8f58a'
 // }
 
-// const customerData = {
-//   full_name: "Example Customer",
-//   email: "example.customer@example.com",
-//   phone: "+441234567890",
-//   date_of_birth: "1990-01-01",
-//   country: "GB"
-// };
 
-// try {
-//   const response = await axios.post(
-//     "https://sandbox-merchant.revolut.com/api/1.0/customers",
-//     customerData,
-//     {
-//       headers: {
-//         "Content-Type": "application/json",
-//         "Accept": "application/json",
-//         "Authorization": `Bearer sk_hDAxJ4W6zzTH5u96aMXXGtmzCYMWLMfFUxx7Dx3p3-skQw4_HXjCrJnNwnXSZ-aZ`
-//       }
-//     }
-//   );
-
-//   console.log("Customer created:", response.data);
-// } catch (error) {
-//   console.error("Revolut error:", error.response?.data || error.message);
+// Registered: {
+//   status: 200,
+//   applePayRegistrationId: '10155b73-2cbe-4501-b573-1a1c8da8f58a'
 // }
 
-// let data = JSON.stringify({
-//     "amount": 500,
-//     "currency": "GBP"
-// });
 
-// let config = {
-//     method: 'post',
-//     maxBodyLength: Infinity,
-//     url: 'https://sandbox-merchant.revolut.com/api/1.0/orders',
-//     headers: {
-//         'Content-Type': 'application/json',
-//         'Accept': 'application/json',
-//         'Authorization': 'Bearer sk_hDAxJ4W6zzTH5u96aMXXGtmzCYMWLMfFUxx7Dx3p3-skQw4_HXjCrJnNwnXSZ-aZ'
-//     },
-//     data: data
-// };
-
-// axios(config)
-//     .then((response) => {
-//         console.log(JSON.stringify(response.data));
-//     })
-//     .catch((error) => {
-//         console.log(error);
-//     });
