@@ -5,7 +5,7 @@ import axios from "axios";
 export const revolutClient = axios.create({
     method: 'post',
     maxBodyLength: Infinity,
-    baseURL: process.env.REVOLUT_BASE_URL, // sandbox or prod
+    baseURL: process.env.REVOLUT_BASE_URL, 
     headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
