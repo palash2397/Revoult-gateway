@@ -12,7 +12,7 @@ if (!orderPublicId) {
 }
 
 const REVOLUT_PUBLIC_KEY =
-  "pk_w7enNtJtvg9Vm6QGWb3DXbUuiwQ5innUaRzbjZG6Y24PXDyH"; // your production public key
+  "pk_w7enNtJtvg9Vm6QGWb3DXbUuiwQ5innUaRzbjZG6Y24PXDyH"; 
 const MODE = "prod"; // "sandbox" or "prod"
 const SUCCESS_URL = `/revoult/ride-confirmed?order_public_id=${orderPublicId}`;
 
@@ -55,97 +55,7 @@ document.getElementById("payBtn").onclick = async () => {
   }
 };
 
-// // ─── 2. Google Pay ────────────────────────────────────────────────────────
-// const setupGooglePay = async () => {
-//   try {
-//     const target = document.getElementById("google-pay-btn");
-//     if (!target) return;
-
-//     const { paymentRequest } = await RevolutCheckout.payments({
-//       publicToken: REVOLUT_PUBLIC_KEY,
-//       mode: MODE,
-//       locale: "pt",
-//     });
-
-//     const instance = paymentRequest(target, {
-//       currency: "EUR",
-//       amount,
-//       preferredPaymentMethod: "googlePay", // ✅ force Google Pay only
-//       createOrder: async () => ({ publicId: orderPublicId }),
-//       onSuccess() {
-//         window.location.href = SUCCESS_URL;
-//       },
-//       onError(error) {
-//         console.error("Google Pay error:", error.message);
-//         alert(`Google Pay failed: ${error.message}`);
-//       },
-//       onCancel() {
-//         handleAfterWalletPay();
-//       },
-//     });
-
-//     const method = await instance.canMakePayment();
-//     if (method === "googlePay") {
-//       instance.render();
-//       target.style.display = "block";
-//       console.log("Google Pay rendered");
-//     } else {
-//       instance.destroy();
-//       console.log("Google Pay not available");
-//     }
-
-//   } catch (error) {
-//     console.error("Google Pay setup error:", error);
-//   }
-// };
-
-// // ─── 3. Apple Pay ─────────────────────────────────────────────────────────
-// const setupApplePay = async () => {
-//   try {
-//     const target = document.getElementById("apple-pay-btn");
-//     if (!target) return;
-
-//     const { paymentRequest } = await RevolutCheckout.payments({
-//       publicToken: REVOLUT_PUBLIC_KEY,
-//       mode: MODE,
-//       locale: "pt",
-//     });
-
-//     const instance = paymentRequest(target, {
-//       currency: "EUR",
-//       amount,
-//       preferredPaymentMethod: "applePay", // ✅ force Apple Pay only
-//       createOrder: async () => ({ publicId: orderPublicId }),
-//       onSuccess() {
-//         window.location.href = SUCCESS_URL;
-//       },
-//       onError(error) {
-//         console.error("Apple Pay error:", error.message);
-//         alert(`Apple Pay failed: ${error.message}`);
-//       },
-//       onCancel() {
-//         handleAfterWalletPay();
-//       },
-//     });
-
-//     const method = await instance.canMakePayment();
-//     if (method === "applePay") {
-//       instance.render();
-//       target.style.display = "block";
-//       console.log("Apple Pay rendered");
-//     } else {
-//       instance.destroy();
-//       console.log("Apple Pay not available on this device/browser");
-//     }
-
-//   } catch (error) {
-//     console.error("Apple Pay setup error:", error);
-//   }
-// };
-
-// // ─── Init all ─────────────────────────────────────────────────────────────
-// setupGooglePay();
-// setupApplePay();
+  
 
 const setupWalletButtons = async () => {
   try {
