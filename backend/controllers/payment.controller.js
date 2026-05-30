@@ -170,7 +170,7 @@ export const createOrderHandle = async (req, res) => {
     });
 
     // console.log("response ----->", response);
-    //const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}`;
+    // const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}`;
     const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}&amount=${amount}`;
     return res.status(200).json({
       order_id: response.data.id,
@@ -252,6 +252,7 @@ export const createOrderAuthHandle = async (req, res) => {
       authorisation_type: "pre_authorisation",
       setup_future_usage: "ON_SESSION",
     });
+
     console.log("response ----->", response);
     const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}&amount=${amount}`;
     return res.status(200).json({
