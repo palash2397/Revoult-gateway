@@ -4,8 +4,8 @@ const params = new URLSearchParams(window.location.search);
 const orderPublicId = params.get("order_public_id");
 const amount = parseInt(params.get("amount")) || 2000;
 
-console.log("ORDER PUBLIC ID:", orderPublicId);
-console.log("AMOUNT:", amount);
+// console.log("ORDER PUBLIC ID:", orderPublicId);
+// console.log("AMOUNT:", amount);
 
 if (!orderPublicId) {
   throw new Error("Missing order_public_id");
