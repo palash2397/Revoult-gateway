@@ -12,7 +12,7 @@ if (!orderPublicId) {
 }
 
 const REVOLUT_PUBLIC_KEY =
-  "pk_w7enNtJtvg9Vm6QGWb3DXbUuiwQ5innUaRzbjZG6Y24PXDyH"; 
+  "pk_w7enNtJtvg9Vm6QGWb3DXbUuiwQ5innUaRzbjZG6Y24PXDyH";
 const MODE = "prod"; // "sandbox" or "prod"
 const SUCCESS_URL = `/revoult/ride-confirmed?order_public_id=${orderPublicId}`;
 
@@ -55,13 +55,12 @@ document.getElementById("payBtn").onclick = async () => {
   }
 };
 
-  
-
 const setupWalletButtons = async () => {
   try {
     const { paymentRequest } = await RevolutCheckout.payments({
       publicToken: REVOLUT_PUBLIC_KEY,
       mode: MODE,
+      locale: "pt",
     });
 
     // ── Google Pay ──────────────────────────────────────────────────
