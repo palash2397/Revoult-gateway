@@ -55,6 +55,7 @@ document.getElementById("payBtn").onclick = async () => {
   }
 };
 
+
 const setupWalletButtons = async () => {
   try {
     const { paymentRequest } = await RevolutCheckout.payments({
