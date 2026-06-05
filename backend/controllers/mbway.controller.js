@@ -63,14 +63,24 @@ export const getPaymentStatus = async (req, res) => {
   try {
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
-    return res.status(200).json({
-      status: paymentIntent.status,
-      id: paymentIntent.id,
-      amount: paymentIntent.amount,
-      currency: paymentIntent.currency,
-    });
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          status: paymentIntent.status,
+          id: paymentIntent.id,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+        },
+        "Payment Status Retrieved Successfully",
+      ),
+    );
   } catch (error) {
     console.error("[MBWay] Retrieve PaymentIntent error:", error.message);
-    return res.status(500).json({ error: error.message });
+    return res
+      .status(501)
+      .json(
+        new ApiResponse(500, {}, `Internal Server error: ${error.message}`),
+      );
   }
 };
