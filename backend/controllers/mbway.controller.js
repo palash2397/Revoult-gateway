@@ -25,12 +25,22 @@ export const createPaymentIntent = async (req, res) => {
       metadata: { ...metadata, customerPhone },
     });
 
-    return res.status(200).json({
-      clientSecret: paymentIntent.client_secret,
-      paymentIntentId: paymentIntent.id,
-    });
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          clientSecret: paymentIntent.client_secret,
+          paymentIntentId: paymentIntent.id,
+        },
+        "Payment Intent Created Successfully",
+      ),
+    );
   } catch (error) {
     console.error("[MBWay] Create PaymentIntent error:", error.message);
-    return res.status(500).json({ error: error.message });
+    return res
+      .status(501)
+      .json(
+        new ApiResponse(500, {}, `Internal Server error: ${error.message}`),
+      );
   }
 };
