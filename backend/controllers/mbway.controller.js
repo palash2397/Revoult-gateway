@@ -2,6 +2,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { stripe } from "../config/stripe.config.js";
 
 export const createPaymentIntent = async (req, res) => {
+  console.log("hello world");
   const { amount, customerPhone, metadata = {} } = req.body;
 
   if (!amount || typeof amount !== "number" || amount < 50) {
