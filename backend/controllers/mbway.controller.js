@@ -6,15 +6,27 @@ export const createPaymentIntent = async (req, res) => {
   const { amount, customerPhone, metadata = {} } = req.body;
 
   if (!amount || typeof amount !== "number" || amount < 50) {
-    return res.status(400).json({
-      error: "Invalid amount. Must be a number in cents, minimum 50 (€0.50)",
-    });
+    return res
+      .status(400)
+      .json(
+        new ApiResponse(
+          400,
+          {},
+          "Invalid amount. Must be a number in cents, minimum 50 (€0.50)",
+        ),
+      );
   }
 
   if (!customerPhone) {
-    return res.status(400).json({
-      error: "customerPhone is required for MB WAY payments",
-    });
+    return res
+      .status(400)
+      .json(
+        new ApiResponse(
+          400,
+          {},
+          "customerPhone is required for MB WAY payments",
+        ),
+      );
   }
 
   try {
@@ -42,5 +54,23 @@ export const createPaymentIntent = async (req, res) => {
       .json(
         new ApiResponse(500, {}, `Internal Server error: ${error.message}`),
       );
+  }
+};
+
+export const getPaymentStatus = async (req, res) => {
+  const { paymentIntentId } = req.params;
+
+  try {
+    const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
+
+    return res.status(200).json({
+      status: paymentIntent.status,
+      id: paymentIntent.id,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+    });
+  } catch (error) {
+    console.error("[MBWay] Retrieve PaymentIntent error:", error.message);
+    return res.status(500).json({ error: error.message });
   }
 };
