@@ -1,13 +1,11 @@
-let a = 10;
-
-function first() {
-   let b = 20;
-   second();
+function User(name) {
+  this.name = name;
 }
 
-function second() {
-   let c = 30;
-   console.log("done");
-}
+User.prototype.sayHello = function () {
+  console.log("Hello");
+};
 
-first();
+const user1 = new User("Pallu");
+
+console.log(user1.sayHello());
