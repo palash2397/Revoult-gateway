@@ -63,6 +63,8 @@ export const getPaymentStatus = async (req, res) => {
   try {
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
+    console.log(paymentIntent);
+
     return res.status(200).json(
       new ApiResponse(
         200,

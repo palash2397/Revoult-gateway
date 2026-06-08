@@ -1,10 +1,11 @@
-function User(name) {
-  this.name = name;
+class User {
+  constructor(name) {
+    this.name = name;
+  }
+  sayHello() {
+    console.log("Hello");
+  }
 }
-
-User.prototype.sayHello = function () {
-  console.log("Hello");
-};
 
 const user1 = new User("Pallu");
 

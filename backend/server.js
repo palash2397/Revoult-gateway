@@ -1,8 +1,9 @@
 import express from "express";
 import cors from "cors";
-import "dotenv/config";
-import rootRouter from "./routes/root.routes.js";
 
+import "dotenv/config";
+
+import rootRouter from "./routes/root.routes.js";
 import { ApiResponse } from "./utils/ApiResponse.js";
 
 const app = express();
@@ -35,17 +36,6 @@ app.all("*", (req, res) => {
       ),
     );
 });
-
-// // Global Error Handler (catches JSON parsing errors)
-// app.use((err, req, res, next) => {
-//   if (err instanceof SyntaxError && err.status === 400 && "body" in err) {
-//     return res.status(400).json(
-//       new ApiResponse(400, null, "Invalid JSON payload passed. Check for trailing commas or comments.")
-//     );
-//   }
-//   // Let Express default handler handle other errors or pass to a custom handler
-//   next(err);
-// });
 
 // Start the server
 const server = app.listen(PORT, () => {
