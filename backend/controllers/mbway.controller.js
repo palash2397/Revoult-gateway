@@ -34,6 +34,13 @@ export const createPaymentIntent = async (req, res) => {
       amount,
       currency: "eur",
       payment_method_types: ["mb_way"],
+      payment_method_data: {
+        type: "mb_way",
+        billing_details: {
+          phone: customerPhone,
+        },
+      },
+      confirm: true,
       metadata: { ...metadata, customerPhone },
     });
 
