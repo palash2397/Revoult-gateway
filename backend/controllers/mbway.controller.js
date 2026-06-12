@@ -98,10 +98,9 @@ export const createFullRefund = async (req, res) => {
   const { paymentIntentId, reason = "requested_by_customer" } = req.body;
 
   if (!paymentIntentId) {
-    return res.status(400).json({
-      success: false,
-      message: "paymentIntentId is required",
-    });
+    return res
+      .status(400)
+      .json(new ApiResponse(400, {}, "paymentIntentId is required"));
   }
 
   try {
@@ -114,23 +113,29 @@ export const createFullRefund = async (req, res) => {
     const mbwayRefStatus =
       refund.destination_details?.mb_way?.reference_status ?? null;
 
-    return res.status(200).json({
-      success: true,
-      message: "Refund initiated successfully",
-      data: {
-        refundId: refund.id,
-        status: refund.status,
-        amount: refund.amount,
-        currency: refund.currency,
-        paymentIntentId: refund.payment_intent,
-        mbwayReference: mbwayRef,
-        mbwayReferenceStatus: mbwayRefStatus,
-        reason: refund.reason,
-        createdAt: refund.created,
-      },
-    });
+    return res.status(200).json(
+      new ApiResponse(
+        200,
+        {
+          refundId: refund.id,
+          status: refund.status,
+          amount: refund.amount,
+          currency: refund.currency,
+          paymentIntentId: refund.payment_intent,
+          mbwayReference: mbwayRef,
+          mbwayReferenceStatus: mbwayRefStatus,
+          reason: refund.reason,
+          createdAt: refund.created,
+        },
+        "Refund initiated successfully",
+      ),
+    );
   } catch (error) {
     console.error("[Refund] Full refund error:", error.message);
-    return res.status(500).json({ success: false, message: error.message });
+    return res
+      .status(501)
+      .json(
+        new ApiResponse(500, {}, `Internal Server error: ${error.message}`),
+      );
   }
 };
