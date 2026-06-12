@@ -192,3 +192,30 @@ export const createPartialRefund = async (req, res) => {
     return res.status(500).json({ success: false, message: error.message });
   }
 };
+
+export const getRefundStatus = async (req, res) => {
+  const { refundId } = req.params;
+
+  try {
+    const refund = await stripe.refunds.retrieve(refundId);
+
+    const mbwayRef = refund.destination_details?.mb_way?.reference ?? null;
+    const mbwayRefStatus =
+      refund.destination_details?.mb_way?.reference_status ?? null;
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        refundId: refund.id,
+        status: refund.status,
+        amount: refund.amount,
+        currency: refund.currency,
+        mbwayReference: mbwayRef,
+        mbwayReferenceStatus: mbwayRefStatus,
+      },
+    });
+  } catch (error) {
+    console.error("[Refund] Get status error:", error.message);
+    return res.status(500).json({ success: false, message: error.message });
+  }
+};
