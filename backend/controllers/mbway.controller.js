@@ -40,6 +40,7 @@ export const createPaymentIntent = async (req, res) => {
           phone: customerPhone,
         },
       },
+      statement_descriptor: "TAPSi",
       confirm: true,
       metadata: { ...metadata, customerPhone },
     });
