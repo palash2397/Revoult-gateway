@@ -50,3 +50,6 @@ process.on("unhandledRejection", (err) => {
     process.exit(1);
   });
 });
+
+//  "customer_id": "4f57d5a3-9b98-4d09-9878-4ca6b04a7051" // sandbox
+// "customer_id": "0d50d901-1fe3-4374-a711-2d9242a85905"  // live
