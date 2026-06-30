@@ -218,6 +218,38 @@ export const createOrderCardHandle = async (req, res) => {
   }
 };
 
+export const createOrderApplePayHandle = async (req, res) => {
+  try {
+    const { amount, currency, customer_id } = req.body;
+
+    const response = await revolutClient.post("/api/1.0/orders", {
+      amount,
+      currency,
+      customer_id,
+      capture_mode: "MANUAL",
+      authorisation_type: "pre_authorisation",
+      setup_future_usage: "ON_SESSION",
+    });
+
+    const url = `${process.env.FRONTEND_BASE_URL}/checkout?order_public_id=${response.data.public_id}&amount=${amount}&method=apple_pay`;
+
+    return res.status(200).json({
+      success: true,
+      payment_method: "apple_pay",
+      order_id: response.data.id,
+      state: response.data.state,
+      data: response.data,
+      url,
+    });
+  } catch (error) {
+    console.log("error while creating apple pay order", error);
+    return res.status(400).json({
+      success: false,
+      error: error.response?.data || error.message,
+    });
+  }
+};
+
 export const getOrderHandle = async (req, res) => {
   try {
     const id = req.params.id;
