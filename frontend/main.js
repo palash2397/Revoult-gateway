@@ -13,8 +13,8 @@ if (!orderPublicId) {
 }
 
 const REVOLUT_PUBLIC_KEY =
-  "pk_0blvy58RYFGhKvdhcH9JAXpMPBhYacieb2AhoYzIOcRz53Zr";
-const MODE = "sandbox"; // "sandbox" or "prod"
+  "pk_w7enNtJtvg9Vm6QGWb3DXbUuiwQ5innUaRzbjZG6Y24PXDyH";
+const MODE = "prod"; // "sandbox" or "prod"
 const SUCCESS_URL = `/revoult/ride-confirmed?order_public_id=${orderPublicId}`;
 
 // ─── Poll order status ────────────────────────────────────────────────────
