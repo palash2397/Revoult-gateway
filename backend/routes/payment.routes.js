@@ -1,14 +1,16 @@
 import { Router } from "express";
 import {
-    createOrderHandle,
-    createCustomerHandle,
-    getOrderHandle,
-    getCustomerHandle,
-    getCustomerPaymentsHandle,
-    payOrderHandle,
-    createOrderAuthHandle,
-    capturePaymentHandle,
-    releasePaymentHandle
+  createOrderHandle,
+  createCustomerHandle,
+  getOrderHandle,
+  getCustomerHandle,
+  getCustomerPaymentsHandle,
+  payOrderHandle,
+  createOrderAuthHandle,
+  capturePaymentHandle,
+  releasePaymentHandle,
+  createOrderCardHandle,
+  createOrderApplePayHandle,
 } from "../controllers/payment.controller.js";
 
 const router = Router();
@@ -21,8 +23,10 @@ router.get("/customer/:id", getCustomerHandle);
 router.get("/customer/payment-methods/:id", getCustomerPaymentsHandle);
 router.post("/order/pay", payOrderHandle);
 
-
 router.post("/create-order/auth", createOrderAuthHandle);
+router.post("/create-order/card", createOrderCardHandle);
+router.post("/create-order/apple-pay", createOrderApplePayHandle);
+
 router.patch("/order/capture", capturePaymentHandle);
 router.patch("/order/release/:id", releasePaymentHandle);
 
